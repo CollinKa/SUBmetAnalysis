@@ -6,7 +6,8 @@
 #include <filesystem>
 
 
-//TCanvas* c1 = new TCanvas("c1", "c1", 0, 400, 600, 300);
+
+// Draw an empty frame with specified axis ranges
 
 
 // Vector to store histogram pointers
@@ -48,15 +49,16 @@ void GetMeanF(int runNum = 1){
 
 
     //loading the data from Ch1
-    f_in->GetObject("ch1/ped_ch1", tree0);
+    TTree* tree1 = new TTree;
+    f_in->GetObject("ch1/ped_ch1", tree1);
     
     TH1F* ch1_h = new TH1F("ch1_h", "ABEmean", 500, 0, 5000);
-    tree0->Draw("ABEmean>>ch1_h");
-    float mean_value = ch0_h->GetMean();
-    std::cout << mean_value << std::endl;
+    tree1->Draw("ABEmean>>ch1_h");
+    float mean_value_1 = ch1_h->GetMean();
+    std::cout << mean_value_1 << std::endl;
 
     //B1CH1_histograms.push_back(ch0_h);
-    points.push_back(std::make_pair(runNum, mean_value));
+    Ch1Data.push_back(std::make_pair(runNum, mean_value_1));
 
 
 
@@ -72,13 +74,13 @@ void GetMeanF(int runNum = 1){
 
 void GetMean(){
 
-    for (int runNum = 1; runNum < 32 ; runNum++)
+    for (int runNum = 1; runNum <  4; runNum++)
     {
         if (runNum == 4 || runNum == 16 ) {continue;}
 
         GetMeanF(runNum);
     }
-
+    
     const Int_t nPoints = points.size();
     // Arrays to store x and y coordinates
     Double_t x[nPoints];
@@ -89,12 +91,36 @@ void GetMean(){
         x[i] = points[i].first;
         y[i] = points[i].second;
     }
+
+    TCanvas *canvas = new TCanvas("canvas", "Overlayed Scatter Plots", 800, 600);
+
+
+    gPad->DrawFrame(0, 0, 40, 4000,"Overlayed Scatter Plots;X-axis;Y-axis");
+
     // Create a TGraph with the data points
     TGraph *graph = new TGraph(nPoints, x, y);
+    
     graph->SetMarkerStyle(20); // Set marker style if needed
-    graph->Draw("AP");
+    //graph->Draw("AP");
 
+
+
+
+    const Int_t nPointsCH1 = Ch1Data.size();
+    // Arrays to store x and y coordinates
+    Double_t x1[nPointsCH1];
+    Double_t y1[nPointsCH1];
+
+    // Fill arrays with data from the vector
+    for (int i = 0; i < nPointsCH1; ++i) {
+        x1[i] = Ch1Data[i].first;
+        y1[i] = Ch1Data[i].second;
+    }
+    // Create a TGraph with the data points
+    TGraph *graph2 = new TGraph(nPointsCH1, x1, y1);
+    graph2->SetMarkerStyle(2); // Set marker style if needed
+    graph2->Draw("P");   //for some unknow
+    graph->Draw("Psame");
+    //c1->SaveAs("multi_scatter_plots.png");
 }
-
-
 
