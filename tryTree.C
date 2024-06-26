@@ -20,7 +20,7 @@ double GetMeanValue(int boardNum,int runNum , int ChanNum){
         if (f_in) delete f_in;
 
         
-        return -1;  //return the mean value as -1, so it can't be seen on the canvas
+        return 3500;  
     }
     
     
@@ -179,7 +179,7 @@ void tryTree(){
         }//end of run number loop
 
         TCanvas *canvas = new TCanvas("canvas", "Overlayed Scatter Plots", 800, 600);
-        gPad->DrawFrame(0, 3500, 40, 3760,"Overlayed Scatter Plots;X-axis;Y-axis");
+        gPad->DrawFrame(0, 3500, 40, 3760,"mean of ABSmean;run number;mean of ABSmean");
 
         TGraph CH_0G;
         TGraph CH_1G;
@@ -204,16 +204,16 @@ void tryTree(){
         MakePlot(CH_3G,CH3Data,3);
         MakePlot(CH_4G,CH4Data,4);
         MakePlot(CH_5G,CH5Data,5);
-        MakePlot(CH_6G,CH6Data,6);
-        MakePlot(CH_7G,CH7Data,7);
-        MakePlot(CH_8G,CH8Data,8);
-        MakePlot(CH_9G,CH9Data,9);
-        MakePlot(CH_10G,CH10Data,10);
-        MakePlot(CH_11G,CH11Data,11);
-        MakePlot(CH_12G,CH12Data,12);
-        MakePlot(CH_13G,CH13Data,13);
-        MakePlot(CH_14G,CH14Data,14);
-        MakePlot(CH_15G,CH15Data,15);
+        MakePlot(CH_6G,CH6Data,35);
+        MakePlot(CH_7G,CH7Data,36);
+        MakePlot(CH_8G,CH8Data,37);
+        MakePlot(CH_9G,CH9Data,39);
+        MakePlot(CH_10G,CH10Data,38);
+        MakePlot(CH_11G,CH11Data,40);
+        MakePlot(CH_12G,CH12Data,41);
+        MakePlot(CH_13G,CH13Data,42);
+        MakePlot(CH_14G,CH14Data,43);
+        MakePlot(CH_15G,CH15Data,44);
 
         CH_0G.Draw("PL");
         CH_1G.Draw("PLsame");
@@ -232,6 +232,17 @@ void tryTree(){
         CH_13G.Draw("PLsame");
         CH_14G.Draw("PLsame");
         CH_15G.Draw("PLsame");
+
+        
+        CH_7G.SetMarkerColor(1);
+        CH_8G.SetMarkerColor(2);
+        CH_9G.SetMarkerColor(3);
+        CH_10G.SetMarkerColor(4);
+        CH_11G.SetMarkerColor(5);
+        CH_12G.SetMarkerColor(6);
+        CH_13G.SetMarkerColor(7);
+        CH_14G.SetMarkerColor(8);
+        CH_15G.SetMarkerColor(9);
 
         TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9); 
         legend->SetHeader("Legend", "C");
