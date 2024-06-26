@@ -11,6 +11,19 @@ double GetMeanValue(int boardNum,int runNum , int ChanNum){
     if (runNum < 10) {f_in = new TFile(Form("/Users/haoliangzheng/subMETData/beamOn/runs/Exp00/r0000%i/board%i.root", runNum,boardNum));}
     else if (runNum >= 13 ) {f_in = new TFile(Form("/Users/haoliangzheng/subMETData/beamOn/runs/Exp00/r000%i/r000%i_board%i.root", runNum,runNum,boardNum));}    
     else {f_in = new TFile(Form("/Users/haoliangzheng/subMETData/beamOn/runs/Exp00/r000%i/board%i.root", runNum,boardNum));}
+    
+    //check if the file exist
+    if (!f_in || f_in->IsZombie()) {
+        
+        
+        // Clean up the file object if it was created but is in a bad state
+        if (f_in) delete f_in;
+
+        
+        return -1;  //return the mean value as -1, so it can't be seen on the canvas
+    }
+    
+    
     TTree* tree0 = new TTree;
     f_in->GetObject(Form("ch%i/ped_ch%i",ChanNum,ChanNum), tree0);
     TH1F* ch0_h = new TH1F("ch0_h", "ABEmean", 500, 0, 5000);
@@ -166,7 +179,7 @@ void tryTree(){
         }//end of run number loop
 
         TCanvas *canvas = new TCanvas("canvas", "Overlayed Scatter Plots", 800, 600);
-        gPad->DrawFrame(0, 3000, 40, 4000,"Overlayed Scatter Plots;X-axis;Y-axis");
+        gPad->DrawFrame(0, 3500, 40, 3760,"Overlayed Scatter Plots;X-axis;Y-axis");
 
         TGraph CH_0G;
         TGraph CH_1G;
@@ -202,23 +215,23 @@ void tryTree(){
         MakePlot(CH_14G,CH14Data,14);
         MakePlot(CH_15G,CH15Data,15);
 
-        CH_0G.Draw("P");
-        CH_1G.Draw("Psame");
-        CH_2G.Draw("Psame");
-        CH_3G.Draw("Psame");
-        CH_4G.Draw("Psame");
-        CH_4G.Draw("Psame");
-        CH_5G.Draw("Psame");
-        CH_6G.Draw("Psame");
-        CH_7G.Draw("Psame");
-        CH_8G.Draw("Psame");
-        CH_9G.Draw("Psame");
-        CH_10G.Draw("Psame");
-        CH_11G.Draw("Psame");
-        CH_12G.Draw("Psame");
-        CH_13G.Draw("Psame");
-        CH_14G.Draw("Psame");
-        CH_15G.Draw("Psame");
+        CH_0G.Draw("PL");
+        CH_1G.Draw("PLsame");
+        CH_2G.Draw("PLsame");
+        CH_3G.Draw("PLsame");
+        CH_4G.Draw("PLsame");
+        CH_4G.Draw("PLsame");
+        CH_5G.Draw("PLsame");
+        CH_6G.Draw("PLsame");
+        CH_7G.Draw("PLsame");
+        CH_8G.Draw("PLsame");
+        CH_9G.Draw("PLsame");
+        CH_10G.Draw("PLsame");
+        CH_11G.Draw("PLsame");
+        CH_12G.Draw("PLsame");
+        CH_13G.Draw("PLsame");
+        CH_14G.Draw("PLsame");
+        CH_15G.Draw("PLsame");
 
         TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9); 
         legend->SetHeader("Legend", "C");
@@ -243,7 +256,7 @@ void tryTree(){
         legend->Draw();
         canvas->Update();
 
-        canvas->SaveAs("multi_scatter_plots.png");
+        
         //MakePlot(TGraph& graph,const std::vector<std::pair<double, double>>& datapair)
         TFile* rootFile = new TFile(Form("baseLineABSMean_board%i.root",boardNum), "RECREATE");
         
