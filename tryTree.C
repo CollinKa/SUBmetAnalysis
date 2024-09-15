@@ -26,8 +26,11 @@ double GetMeanValue(int boardNum,int runNum , int ChanNum){
     
     TTree* tree0 = new TTree;
     f_in->GetObject(Form("ch%i/ped_ch%i",ChanNum,ChanNum), tree0);
-    TH1F* ch0_h = new TH1F("ch0_h", "ABEmean", 500, 0, 5000);
-    tree0->Draw("ABEmean>>ch0_h"); // I doubt if this can work
+    //TH1F* ch0_h = new TH1F("ch0_h", "ABEmean", 500, 0, 5000); 
+    //tree0->Draw("ABEmean>>ch0_h"); 
+    TH1F* ch0_h = new TH1F("ch0_h", "ABErms", 500, 0, 5000);
+    tree0->Draw("ABErms>>ch0_h"); 
+    
 
     //close the file and delete the tree
     float mean_value = ch0_h->GetMean();
@@ -179,7 +182,8 @@ void tryTree(){
         }//end of run number loop
 
         TCanvas *canvas = new TCanvas("canvas", "Overlayed Scatter Plots", 800, 600);
-        gPad->DrawFrame(0, 3500, 40, 3760,"mean of ABSmean;run number;mean of ABSmean");
+        //gPad->DrawFrame(0, 3480, 40, 3760,"mean of ABSmean;run number;mean of ABSmean");
+        gPad->DrawFrame(0, 0, 40, 10,"mean of ABSrms;run number;mean of ABSmean");
 
         TGraph CH_0G;
         TGraph CH_1G;
@@ -199,7 +203,7 @@ void tryTree(){
         TGraph CH_15G;
 
         MakePlot(CH_0G,CH0Data,0);
-        MakePlot(CH_1G,CH1Data,1);
+        MakePlot(CH_1G,CH1Data,49);
         MakePlot(CH_2G,CH2Data,2);
         MakePlot(CH_3G,CH3Data,3);
         MakePlot(CH_4G,CH4Data,4);
@@ -234,6 +238,16 @@ void tryTree(){
         CH_15G.Draw("PLsame");
 
         
+
+        CH_1G.SetMarkerColor(40);
+        CH_2G.SetMarkerColor(41);
+        CH_3G.SetMarkerColor(42);
+        CH_4G.SetMarkerColor(30);
+        CH_5G.SetMarkerColor(49);
+        CH_6G.SetMarkerColor(39);
+        CH_7G.SetMarkerColor(38);
+
+
         CH_7G.SetMarkerColor(1);
         CH_8G.SetMarkerColor(2);
         CH_9G.SetMarkerColor(3);
@@ -269,7 +283,7 @@ void tryTree(){
 
         
         //MakePlot(TGraph& graph,const std::vector<std::pair<double, double>>& datapair)
-        TFile* rootFile = new TFile(Form("baseLineABSMean_board%i.root",boardNum), "RECREATE");
+        TFile* rootFile = new TFile(Form("baseLineABErmsMean_board%i.root",boardNum), "RECREATE");
         
         canvas->Write();
 
