@@ -7,8 +7,7 @@ import numpy as np
 
 
 filelocation = "/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root"
-lpulseT = r.TH1F("lpulseT", "large pulse T Histogram;time;# of pulse", 1000, 0, 5000)
-
+lpulseT = r.TH1F("lpulseT", "large pulse T Histogram;time;# of pulse", 4000, 0, 4000)
 
 file = r.TFile.Open(filelocation)
 tree = file.Get("tree")
@@ -37,35 +36,38 @@ def sum_of_two_gaussians(x, params):
     return gauss1 + gauss2 + gauss3 + gauss4 + gauss5 + gauss6 + gauss7 + gauss8
 
 
-fit_func = TF1("fit_func", sum_of_two_gaussians, 100, 4000, 24) 
+
+fit_func = TF1("fit_func", sum_of_two_gaussians, 100, 4000, 24) #fitting range, number fitting parameters
+
+
 
 #guess the mean and sigma for gaussian distribution
-sigma =4
-mean1 = 261
+sigma =13
+mean1 = 310
 sigma1 = sigma
 mean2 = 738
 sigma2 = sigma
 mean3 = 1215
 sigma3 = sigma
-mean4 = 1692
+mean4 = 1745
 sigma4 = sigma
-mean4 = 2169
-sigma4 = sigma
-mean5 = 2645
+mean5 = 2215
 sigma5 = sigma
-mean6 = 3122
+mean6 = 2689
 sigma6 = sigma
-mean7 = 3122
+mean7 = 3171
 sigma7 = sigma
 mean8 = 3599
 sigma8 = sigma
 
 
 #fit_func.SetParameters([100, mean1, sigma1, 100, mean2, sigma2,100,mean3, sigma3,100,mean4, sigma4,100,mean5, sigma5,100,mean6, sigma6,100,mean7, sigma7,100,mean8, sigma8])
-amplitude = 100
+amplitude = 350
 params = [amplitude, mean1, sigma1, amplitude, mean2, sigma2, amplitude, mean3, sigma3, 
           amplitude, mean4, sigma4, amplitude, mean5, sigma5, amplitude, mean6, sigma6, 
           amplitude, mean7, sigma7, amplitude, mean8, sigma8]
+
+
 # Convert the list to a numpy array of type double
 params_array = np.array(params, dtype='double')
 
@@ -82,10 +84,10 @@ canvas = r.TCanvas("canvas", "Canvas", 800, 600)
 file.Close()
 lpulseT.Fit(fit_func)
 lpulseT.Draw("pe")
-#lpulseT.Draw()
+
 canvas.Update()
 canvas.Draw()
-
+canvas.SaveAs("gaussfit.png")
 
 
 output_file = r.TFile("pulseT.root", "RECREATE")
