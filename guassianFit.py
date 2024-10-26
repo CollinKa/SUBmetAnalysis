@@ -35,6 +35,9 @@ def sum_of_two_gaussians(x, params):
     gauss8 = params[21] * r.TMath.Gaus(x[0], params[22], params[23])
     return gauss1 + gauss2 + gauss3 + gauss4 + gauss5 + gauss6 + gauss7 + gauss8
 
+    #2nd fitting function(yeild the same result like above)
+    #gauss = params[0] * r.TMath.Gaus(x[0], params[1], params[2]) + params[3] * r.TMath.Gaus(x[0], params[4], params[5]) + params[6] * r.TMath.Gaus(x[0], params[7], params[8]) + params[9] * r.TMath.Gaus(x[0], params[10], params[11]) + params[12] * r.TMath.Gaus(x[0], params[13], params[14]) + params[15] * r.TMath.Gaus(x[0], params[16], params[17]) + params[18] * r.TMath.Gaus(x[0], params[19], params[20]) + params[21] * r.TMath.Gaus(x[0], params[22], params[23])
+    #return gauss
 
 
 fit_func = TF1("fit_func", sum_of_two_gaussians, 100, 4000, 24) #fitting range, number fitting parameters
@@ -92,8 +95,15 @@ canvas.SaveAs("gaussfit.png")
 
 output_file = r.TFile("pulseT.root", "RECREATE")
 lpulseT.Write()
+canvas.Write()
 output_file.Close()
 
 # Loop over all parameters and print them
 for i in range(fit_func.GetNpar()):
-    print(f"Parameter {i}: {fit_func.GetParameter(i)}")
+    Di = i // 3 #index of the i th gaussion distribution
+    a = i - Di*3 #used to determine if number is associate with amplitude or sigma or mean.
+
+    if a == 2: print(f"distribution {Di} sigma: {fit_func.GetParameter(i)}")
+    elif a == 1: print(f"distribution {Di} mean: {fit_func.GetParameter(i)}")
+    elif a == 0: print(f"distribution {Di} amplitude: {fit_func.GetParameter(i)}")   
+    
