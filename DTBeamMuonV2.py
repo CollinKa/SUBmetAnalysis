@@ -21,7 +21,7 @@ import os
 
 
 #Method for finding Dt for data within a single muon bunch
-def Dt(x,y,l,t,a = 1):
+def Dt(x,y,l,t,a = 2,cosmicVeto=True):
     data=zip(x,y,l,t)
     tl1 = 5000
     tl2 = 6000
@@ -31,6 +31,8 @@ def Dt(x,y,l,t,a = 1):
     yl2 = -200
 
     if len(x) < 2 : return -100  #To find Dt we need at least two large pulses in the beam muon bunch.
+    if cosmicVeto:
+        if (0 in x) or (9 in y) or (7 in y): return -100 
     
     #find the first pulse at each layer
     for x,y,l,t in data:
@@ -282,7 +284,7 @@ print(f"twolayers: {twolayers}")
 print(len(DtSet)) 
 
 for t in DtSet:
-    if t is not None:
+    if abs(t) < 2*sig: #from Dt() function, only the result that is less than abs(t) < 2*sig means 2 layer hit exist.
         histogram.Fill(t)
 
 histogram.Draw()
