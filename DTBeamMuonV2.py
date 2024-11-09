@@ -21,7 +21,7 @@ import os
 
 
 #Method for finding Dt for data within a single muon bunch
-def Dt(x,y,l,t,a = 2,cosmicVeto=True):
+def Dt(x,y,l,t,a = 0,cosmicVeto=False):
     data=zip(x,y,l,t)
     tl1 = 5000
     tl2 = 6000
@@ -30,9 +30,9 @@ def Dt(x,y,l,t,a = 2,cosmicVeto=True):
     yl1 = -100
     yl2 = -200
 
-    if len(x) < 2 : return -100  #To find Dt we need at least two large pulses in the beam muon bunch.
+    if len(x) < 2 or  len(x) > 4: return -100  #To find Dt we need at least two large pulses in the beam muon bunch.
     if cosmicVeto:
-        if (0 in x) or (9 in y) or (7 in y): return -100 
+        if (0 in x) or (9 in x) or (7 in y): return -100 
     
     #find the first pulse at each layer
     for x,y,l,t in data:
@@ -55,7 +55,7 @@ def Dt(x,y,l,t,a = 2,cosmicVeto=True):
     
 #----------------------------------------------------------------------------------
 #main function
-file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root"]
+file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00047_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00048_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00049_event.root"]
 
 #data collection window
 hegithCut = 2500
@@ -291,7 +291,7 @@ histogram.Draw()
 c1.Update()
 c1.Draw()
 c1.SaveAs("1d_histogram.png")
-output_file = r.TFile("DtV2.root", "RECREATE")
+output_file = r.TFile("DtV2_aAny.root", "RECREATE")
 histogram.Write()
 nhits.Write()
 
