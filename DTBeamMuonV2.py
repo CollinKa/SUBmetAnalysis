@@ -29,38 +29,48 @@ def Dt(x,y,l,t,a = 0,cosmicVeto=False):
     xl2 = -200
     yl1 = -100
     yl2 = -200
+    l1Hit = 0
+    l2Hit = 0
 
-    if len(x) < 2 or  len(x) > 4: return -100  #To find Dt we need at least two large pulses in the beam muon bunch.
+    if len(x) < 2: return [-100,0]  #To find Dt we need at least two large pulses in the beam muon bunch. The second 0 means in the curent bunch there is no one hit per layer process
     if cosmicVeto:
         if (0 in x) or (9 in x) or (7 in y): return -100 
     
     #find the first pulse at each layer
     for x,y,l,t in data:
         if l == 1:
+            l1Hit = 1
             if t < tl1:
                 tl1 = t
                 xl1 = x
                 yl1 = y
                             
         if l == 2:
+            l2Hit = 1
             if t < tl2:
                 tl2 = t
                 xl2 = x
                 yl2 = y                 
 
     Da = ((xl1 - xl2)** 2)  +  ((yl1 - yl2)**2) 
-    if Da <= a:        
-        return tl2 - tl1
-    else: return -100 
+    #if Da <= 5 and Da >= 2:
+    if Da <= a:
+        return [tl2 - tl1,l1Hit*l2Hit]
+    else: return [-100,0]
     
 #----------------------------------------------------------------------------------
 #main function
 file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00047_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00048_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00049_event.root"]
 
 #data collection window
-hegithCut = 2500
+hegithCut = 3480
+areaCut = 150000
+areaUpBound = 230000
 sig = 13 #standard deviation
 MuonBunchTime = [310,785,1261,1741,2215,2694,3170,3645] # mean of 8 different muon bunches
+BunchNumber = 0
+Num1hitPL = 0 # count the number of one hit per layer process (at most 1 process per bunch)
+
 
 #histograms
 r.gROOT.SetBatch(False)
@@ -85,6 +95,7 @@ for file_name in file_names:
     #load the braches
     height = r.std.vector('double')()
     time = r.std.vector('double')()
+    area = r.std.vector('double')()
     ix = r.std.vector('int')()
     iy = r.std.vector('int')()
     il = r.std.vector('int')()
@@ -94,6 +105,8 @@ for file_name in file_names:
     tree.SetBranchAddress("ix", ix)
     tree.SetBranchAddress("iy", iy)
     tree.SetBranchAddress("il", il)
+    tree.SetBranchAddress("a", area)
+    
 
 
     #GetEntries
@@ -148,6 +161,17 @@ for file_name in file_names:
         B7num = 0
         B8num = 0
 
+        #count the one hit per layer process in each bunch
+        twoHit1 = 0
+        twoHit2= 0
+        twoHit3= 0
+        twoHit4= 0
+        twoHit5= 0
+        twoHit6= 0
+        twoHit7= 0
+        twoHit8= 0
+
+
         #In a given muon bunch how likely we can see the there are large pulse at layer 1 and 2?
         B1l1E = False # large pulse existes at bunch 1 layer 1
         B1l2E = False
@@ -167,9 +191,9 @@ for file_name in file_names:
         B8l2E = False
         
 
-        sorted_data = sorted(zip(time,height,ix,iy,il), key=lambda x: x[0])
-        for t,h,x,y,l in sorted_data:
-            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and h > hegithCut :
+        sorted_data = sorted(zip(time,height,ix,iy,il,area), key=lambda x: x[0])
+        for t,h,x,y,l,a in sorted_data:
+            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch1x.append(x)
                 bunch1y.append(y)
@@ -180,7 +204,7 @@ for file_name in file_names:
                 if l ==2 :B1l2E = True
                 
 
-            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch2x.append(x)
                 bunch2y.append(y)
@@ -190,7 +214,7 @@ for file_name in file_names:
                 if l ==1 :B2l1E = True
                 if l ==2 :B2l2E = True
             
-            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch3x.append(x)
                 bunch3y.append(y)
@@ -200,7 +224,7 @@ for file_name in file_names:
                 if l ==1 :B3l1E = True
                 if l ==2 :B3l2E = True
             
-            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch4x.append(x)
                 bunch4y.append(y)
@@ -210,7 +234,7 @@ for file_name in file_names:
                 if l ==1 :B4l1E = True
                 if l ==2 :B4l2E = True
             
-            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch5x.append(x)
                 bunch5y.append(y)
@@ -220,7 +244,7 @@ for file_name in file_names:
                 if l ==1 :B5l1E = True
                 if l ==2 :B5l2E = True
             
-            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch6x.append(x)
                 bunch6y.append(y)
@@ -230,7 +254,7 @@ for file_name in file_names:
                 if l ==1 :B6l1E = True
                 if l ==2 :B6l2E = True
             
-            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch7x.append(x)
                 bunch7y.append(y)
@@ -241,7 +265,7 @@ for file_name in file_names:
                 if l ==2 :B7l2E = True
 
 
-            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and h > hegithCut :
+            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
                 
                 bunch8x.append(x)
                 bunch8y.append(y)
@@ -251,14 +275,23 @@ for file_name in file_names:
                 if l ==1 :B8l1E = True
                 if l ==2 :B8l2E = True
 
-        Dtl1=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
-        Dtl2=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
-        Dtl3=Dt(bunch3x,bunch3y,bunch3l,bunch3t)
-        Dtl4=Dt(bunch4x,bunch4y,bunch4l,bunch4t)
-        Dtl5=Dt(bunch5x,bunch5y,bunch5l,bunch5t)
-        Dtl6=Dt(bunch6x,bunch6y,bunch6l,bunch6t)
-        Dtl7=Dt(bunch7x,bunch7y,bunch7l,bunch7t)
-        Dtl8=Dt(bunch8x,bunch8y,bunch8l,bunch8t)
+        Dtl1,twoHit1=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
+        Dtl2,twoHit2=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
+        Dtl3,twoHit3=Dt(bunch3x,bunch3y,bunch3l,bunch3t)
+        Dtl4,twoHit4=Dt(bunch4x,bunch4y,bunch4l,bunch4t)
+        Dtl5,twoHit5=Dt(bunch5x,bunch5y,bunch5l,bunch5t)
+        Dtl6,twoHit6=Dt(bunch6x,bunch6y,bunch6l,bunch6t)
+        Dtl7,twoHit7=Dt(bunch7x,bunch7y,bunch7l,bunch7t)
+        Dtl8,twoHit8=Dt(bunch8x,bunch8y,bunch8l,bunch8t)
+        Num1hitPL += twoHit1
+        Num1hitPL += twoHit2
+        Num1hitPL += twoHit3
+        Num1hitPL += twoHit4
+        Num1hitPL += twoHit5
+        Num1hitPL += twoHit6
+        Num1hitPL += twoHit7
+        Num1hitPL += twoHit8
+        
         DtSet.append(Dtl1)
         DtSet.append(Dtl2)
         DtSet.append(Dtl3)
@@ -268,6 +301,16 @@ for file_name in file_names:
         DtSet.append(Dtl7)
         DtSet.append(Dtl8)
         nhits.Fill(B8num+B7num+B6num + B5num + B4num + B3num + B2num + B1num)
+        #count the number of bunch in the event
+        if len(bunch1x) > 0: BunchNumber +=1
+        if len(bunch2x) > 0: BunchNumber +=1
+        if len(bunch3x) > 0: BunchNumber +=1
+        if len(bunch4x) > 0: BunchNumber +=1
+        if len(bunch5x) > 0: BunchNumber +=1
+        if len(bunch6x) > 0: BunchNumber +=1
+        if len(bunch7x) > 0: BunchNumber +=1
+        if len(bunch8x) > 0: BunchNumber +=1
+
 
         if B1l1E & B1l2E: twolayers += 1
         if B2l1E & B2l2E: twolayers += 1
@@ -280,6 +323,9 @@ for file_name in file_names:
         
 
 print(f"twolayers: {twolayers}")  
+print(f"Number of bunches: {BunchNumber}")
+print(f"Number of 1 hit per layer process: {Num1hitPL}")
+
 
 print(len(DtSet)) 
 
@@ -291,7 +337,7 @@ histogram.Draw()
 c1.Update()
 c1.Draw()
 c1.SaveAs("1d_histogram.png")
-output_file = r.TFile("DtV2_aAny.root", "RECREATE")
+output_file = r.TFile("DtV2_a164.root", "RECREATE")
 histogram.Write()
 nhits.Write()
 
