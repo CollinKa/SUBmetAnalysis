@@ -10,6 +10,15 @@ issue:
 add the trigger time mean and sigma value in Dt()
 
 
+11-19 
+prepare to make Dt / channel data to do the fit
+issue: the the default file doesn't come with channel number.
+need to create channel number for each channel then procee
+
+
+11-23
+create channel number with ix(0-9) iy(0-7). Chan number = ix + iy*10
+
 """
 
 
@@ -17,6 +26,7 @@ add the trigger time mean and sigma value in Dt()
 
 import ROOT as r
 import os
+import numpy as np
 
 
 
@@ -31,8 +41,9 @@ def Dt(x,y,l,t,a = 0,cosmicVeto=False):
     yl2 = -200
     l1Hit = 0
     l2Hit = 0
+    chanNo = -10
 
-    if len(x) < 2: return [-100,0]  #To find Dt we need at least two large pulses in the beam muon bunch. The second 0 means in the curent bunch there is no one hit per layer process
+    if len(x) < 2: return [-100,0,-10]  #To find Dt we need at least two large pulses in the beam muon bunch. The second 0 means in the curent bunch there is no one hit per layer process
     if cosmicVeto:
         if (0 in x) or (9 in x) or (7 in y): return -100 
     
@@ -53,24 +64,44 @@ def Dt(x,y,l,t,a = 0,cosmicVeto=False):
                 yl2 = y                 
 
     Da = ((xl1 - xl2)** 2)  +  ((yl1 - yl2)**2) 
+    if Da ==0:
+        chanNo = xl1 + yl1 * 10
     #if Da <= 5 and Da >= 2:
     if Da <= a:
-        return [tl2 - tl1,l1Hit*l2Hit]
-    else: return [-100,0]
+        return [tl2 - tl1,l1Hit*l2Hit,chanNo]
+    else: return [-100,0,-10]
     
 #----------------------------------------------------------------------------------
 #main function
+"""
+fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged"
+file_names = []
+for file in os.listdir(fileDit):
+    if file.endswith(".root"):
+        file_names.append(f"/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/{file}")
+#print(file_names)
+"""
+
+
+
+
+
 file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00047_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00048_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00049_event.root"]
 
 #data collection window
-hegithCut = 3480
-areaCut = 150000
-areaUpBound = 230000
+hegithCut = 2500
+areaCut = 0  #lower bound (as if doesn't exist)
+#areaCut = 150000
+#areaUpBound = 230000
+areaUpBound = 23000000000 #upper bound (as if doesn't exist)
+
 sig = 13 #standard deviation
 MuonBunchTime = [310,785,1261,1741,2215,2694,3170,3645] # mean of 8 different muon bunches
 BunchNumber = 0
 Num1hitPL = 0 # count the number of one hit per layer process (at most 1 process per bunch)
+numberOfProcessFile = 0
 
+Dt_Chans = [[] for _ in range(80)]# Create 80 empty lists to save the Dt value for each channels
 
 #histograms
 r.gROOT.SetBatch(False)
@@ -91,6 +122,8 @@ for file_name in file_names:
     file = r.TFile.Open(file_name, "READ")
     # Get the tree
     tree = file.Get("tree")
+    if not tree or not isinstance(tree, r.TTree):
+        continue
 
     #load the braches
     height = r.std.vector('double')()
@@ -106,6 +139,8 @@ for file_name in file_names:
     tree.SetBranchAddress("iy", iy)
     tree.SetBranchAddress("il", il)
     tree.SetBranchAddress("a", area)
+
+    numberOfProcessFile += 1
     
 
 
@@ -170,6 +205,17 @@ for file_name in file_names:
         twoHit6= 0
         twoHit7= 0
         twoHit8= 0
+
+        #which channel creates a = 0 data
+
+        B1chan = -10 #channel for first bunch
+        B2chan= -10
+        B3chan= -10
+        B4chan= -10
+        B5chan= -10
+        B6chan= -10
+        B7chan= -10
+        B8chan= -10
 
 
         #In a given muon bunch how likely we can see the there are large pulse at layer 1 and 2?
@@ -275,14 +321,25 @@ for file_name in file_names:
                 if l ==1 :B8l1E = True
                 if l ==2 :B8l2E = True
 
-        Dtl1,twoHit1=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
-        Dtl2,twoHit2=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
-        Dtl3,twoHit3=Dt(bunch3x,bunch3y,bunch3l,bunch3t)
-        Dtl4,twoHit4=Dt(bunch4x,bunch4y,bunch4l,bunch4t)
-        Dtl5,twoHit5=Dt(bunch5x,bunch5y,bunch5l,bunch5t)
-        Dtl6,twoHit6=Dt(bunch6x,bunch6y,bunch6l,bunch6t)
-        Dtl7,twoHit7=Dt(bunch7x,bunch7y,bunch7l,bunch7t)
-        Dtl8,twoHit8=Dt(bunch8x,bunch8y,bunch8l,bunch8t)
+        Dtl1,twoHit1,B1chan=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
+        Dtl2,twoHit2,B2chan=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
+        Dtl3,twoHit3,B3chan=Dt(bunch3x,bunch3y,bunch3l,bunch3t)
+        Dtl4,twoHit4,B4chan=Dt(bunch4x,bunch4y,bunch4l,bunch4t)
+        Dtl5,twoHit5,B5chan=Dt(bunch5x,bunch5y,bunch5l,bunch5t)
+        Dtl6,twoHit6,B6chan=Dt(bunch6x,bunch6y,bunch6l,bunch6t)
+        Dtl7,twoHit7,B7chan=Dt(bunch7x,bunch7y,bunch7l,bunch7t)
+        Dtl8,twoHit8,B8chan=Dt(bunch8x,bunch8y,bunch8l,bunch8t)
+
+        if (B1chan>=0): Dt_Chans[B1chan].append(Dtl1)
+        if (B2chan>=0): Dt_Chans[B2chan].append(Dtl2)
+        if (B3chan>=0): Dt_Chans[B3chan].append(Dtl3)
+        if (B4chan>=0): Dt_Chans[B4chan].append(Dtl4)
+        if (B5chan>=0): Dt_Chans[B5chan].append(Dtl5)
+        if (B6chan>=0): Dt_Chans[B6chan].append(Dtl6)
+        if (B7chan>=0): Dt_Chans[B7chan].append(Dtl7)
+        if (B8chan>=0): Dt_Chans[B8chan].append(Dtl8)
+
+
         Num1hitPL += twoHit1
         Num1hitPL += twoHit2
         Num1hitPL += twoHit3
@@ -329,6 +386,19 @@ print(f"Number of 1 hit per layer process: {Num1hitPL}")
 
 print(len(DtSet)) 
 
+
+#find the mean for each channel
+MeanDtChanNo = r.TGraph(80)
+for ChanNo, DtSetData in enumerate(Dt_Chans):
+    if len(DtSetData) >0 : 
+        mean = np.mean(DtSetData)
+        
+        MeanDtChanNo.SetPoint(ChanNo,ChanNo, mean) 
+MeanDtChanNo.SetTitle("Chan & Dt mean;channel no;Dt(sample time) mean")
+MeanDtChanNo.SetMarkerStyle(21)  # Solid square
+MeanDtChanNo.SetMarkerSize(1.2)  # Marker size
+MeanDtChanNo.SetMarkerColor(r.kRed)  # Marker color
+
 for t in DtSet:
     if abs(t) < 2*sig: #from Dt() function, only the result that is less than abs(t) < 2*sig means 2 layer hit exist.
         histogram.Fill(t)
@@ -340,7 +410,10 @@ c1.SaveAs("1d_histogram.png")
 output_file = r.TFile("DtV2_a164.root", "RECREATE")
 histogram.Write()
 nhits.Write()
-
+canvas = r.TCanvas("canvas1", "My First Canvas", 800, 600)
+MeanDtChanNo.Draw("AP")
+canvas.Write()
+print(f"numberOfProcessFile: {numberOfProcessFile}")
 
 #GetEntry()
 
