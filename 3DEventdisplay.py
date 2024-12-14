@@ -33,33 +33,51 @@ def example_3D_plot_pyroot(eventNo,filelocation):
         if l == 2: h3l2.Fill(t, x, y,a)
         elif l == 1: h3l1.Fill(t, x, y,a)
         
+    # Set a common color range
+    min_val = min(h3l1.GetMinimum(), h3l2.GetMinimum())
+    max_val = max(h3l1.GetMaximum(), h3l2.GetMaximum())
+    h3l1.SetMinimum(min_val)
+    h3l1.SetMaximum(max_val)
+    h3l2.SetMinimum(min_val)
+    h3l2.SetMaximum(max_val)
 
-    # Create a canvas
-    c1 = r.TCanvas("c1", "3D Histogram Example", 800, 600)
+    # Create a canvas and divide it into two pads
+    c1 = r.TCanvas("c1", "Two 3D Histograms with Color Bar", 800, 600)
     c1.Divide(2, 1)
+    palette = r.TPaletteAxis(0.92, 0.1, 0.96, 0.9, h3l2)  # Position the color bar
+    # Draw the first histogram in pad 1
+    c1.cd(1)
+    h3l1.Draw("LEGO2Z")  # Use LEGO2 to enable color mapping with color bar
+
+    # Draw the second histogram in pad 2
+    c1.cd(2)
+    h3l2.Draw("LEGO2Z")  # Use LEGO2 to enable color mapping with color bar
+
+    # Back to the main canvas to draw a global color bar
+    c1.cd()
+    r.gPad.Update()
+
+    # Add a TPaletteAxis for the second histogram to act as a shared color bar
     
-    # Draw the histogram with the BOX option
-    c1.cd(1)     
-    h3l2.Draw("BOX2")  # Options: "BOX2", "LEGO2", "SURF2"
+    palette.SetLabelSize(0.02)
+    palette.Draw()
 
-    c1.cd(2)     
-    # Draw the histogram with the BOX option
-    h3l1.Draw("BOX2")  # Options: "BOX2", "LEGO2", "SURF2"
-
+    # Update the canvas
+    c1.Modified()
     c1.Update()
+    output_file = r.TFile("output_canvas.root", "RECREATE")
+    c1.Write()
+    output_file.Close()
 
-    # Keep the GUI window open
-    #input("Press Enter to exit...")
 
-    r.gApplication.Run()
 
-    #c2 = r.TCanvas("c2", "3D Histogram Example", 800, 600)
-    #h3l1.Draw("BOX2")
+    #r.gApplication.Run()
+
 
 
 
 # Run the function
 if __name__ == "__main__":
-    fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/r00020_event.root"
+    fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/r00047_event.root"
     eventNo = 5
     example_3D_plot_pyroot(eventNo,fileDit)
