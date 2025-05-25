@@ -6,23 +6,31 @@ from ROOT import TF1
 import numpy as np
 
 
-filelocation = "/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root"
+#filelocation = "/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root"
+#filelocation = "/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/Merge4runs.root"
+filelocation = "/Users/haoliangzheng/subMETData/V3Data/SUBMET/2025MayVer/r00025_spill.root"
 lpulseT = r.TH1F("lpulseT", "large pulse T Histogram;time;# of pulse", 4000, 0, 4000)
 
 file = r.TFile.Open(filelocation)
 tree = file.Get("tree")
 h = r.std.vector('Double_t')() #height
 t = r.std.vector('Double_t')()
-tree.SetBranchAddress("h", h)
-tree.SetBranchAddress("t", t)
+width = r.std.vector('Double_t')()
+
+RMSv = r.std.vector('Double_t')()
+tree.SetBranchAddress("pulse_volt_height", h)
+tree.SetBranchAddress("pulse_time_is", t)
+tree.SetBranchAddress("event_volt_rms_abe", RMSv)
+tree.SetBranchAddress("pulse_time_fwhm", width)
+
 TotalEntries=tree.GetEntries()
 
 for index in range(TotalEntries):
     tree.GetEntry(index)
 
-    for time,heihgt in zip(t,h):
-        if heihgt>2500:
-            lpulseT.Fill(time)
+    for TDCtime,TDCheihgt,TDCrmsabeV,TDCwidth in zip(t,h,RMSv,width):
+        if TDCheihgt>3000 and TDCwidth< 100 and TDCrmsabeV < 2:
+            lpulseT.Fill(TDCtime)
 
 def sum_of_two_gaussians(x, params):
     gauss1 = params[0] * r.TMath.Gaus(x[0], params[1], params[2]) # params[0]: Amplitude (normalization) for the first Gaussian.   params[1]: Mean of the first Gaussian.    params[2]: Sigma (standard deviation) of the first Gaussian
@@ -60,7 +68,7 @@ mean6 = 2689
 sigma6 = sigma
 mean7 = 3171
 sigma7 = sigma
-mean8 = 3599
+mean8 = 3648
 sigma8 = sigma
 
 
@@ -90,10 +98,10 @@ lpulseT.Draw("pe")
 
 canvas.Update()
 canvas.Draw()
-canvas.SaveAs("gaussfit.png")
+canvas.SaveAs("gaussfit4runs.png")
 
 
-output_file = r.TFile("pulseT.root", "RECREATE")
+output_file = r.TFile("pulseT4runs.root", "RECREATE")
 lpulseT.Write()
 canvas.Write()
 output_file.Close()
