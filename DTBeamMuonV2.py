@@ -19,6 +19,12 @@ need to create channel number for each channel then procee
 11-23
 create channel number with ix(0-9) iy(0-7). Chan number = ix + iy*10
 
+
+2025 5-25
+modify the script for the lastest  root file and new muon selection rules
+Currently remove the selection critiria by using area. 
+I notice there is upper bound for the area what is that?
+
 """
 
 
@@ -27,11 +33,12 @@ create channel number with ix(0-9) iy(0-7). Chan number = ix + iy*10
 import ROOT as r
 import os
 import numpy as np
+import array
 
 
 
 #Method for finding Dt for data within a single muon bunch
-def Dt(x,y,l,t,a = 0,cosmicVeto=False):
+def Dt(x,y,l,t,a = 2,cosmicVeto=False):
     data=zip(x,y,l,t)
     tl1 = 5000
     tl2 = 6000
@@ -49,14 +56,14 @@ def Dt(x,y,l,t,a = 0,cosmicVeto=False):
     
     #find the first pulse at each layer
     for x,y,l,t in data:
-        if l == 1:
+        if l == 0:
             l1Hit = 1
             if t < tl1:
                 tl1 = t
                 xl1 = x
                 yl1 = y
                             
-        if l == 2:
+        if l == 1:
             l2Hit = 1
             if t < tl2:
                 tl2 = t
@@ -68,6 +75,7 @@ def Dt(x,y,l,t,a = 0,cosmicVeto=False):
         chanNo = xl1 + yl1 * 10
     #if Da <= 5 and Da >= 2:
     if Da <= a:
+        print("found it")
         return [tl2 - tl1,l1Hit*l2Hit,chanNo]
     else: return [-100,0,-10]
     
@@ -82,21 +90,25 @@ for file in os.listdir(fileDit):
 #print(file_names)
 """
 
+#file_names = ["/Users/haoliangzheng/subMETData/V3Data/SUBMET/merged/r00020_event.root"]
+#file_names = ["/Users/haoliangzheng/subMETData/V3Data/SUBMET/r00020/merged_r00020_event.root"]
+file_names = ["/Users/haoliangzheng/subMETData/V3Data/SUBMET/2025MayVer/r00025_spill.root"]
 
-
-
-
-file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00047_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00048_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00049_event.root"]
+#file_names= ["/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00020_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00047_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00048_event.root","/Users/haoliangzheng/Desktop/SUBMET/analysisScript/SUBmetAnalysis/r00049_event.root"]
 
 #data collection window
-hegithCut = 2500
-areaCut = 0  #lower bound (as if doesn't exist)
-#areaCut = 150000
-#areaUpBound = 230000
-areaUpBound = 23000000000 #upper bound (as if doesn't exist)
+hegithCut = 3000 #(for TDC height)
+
+#areaCut = 0  #lower bound (as if doesn't exist)
+areaCut = 150000
+areaUpBound = 230000
+widthBound = 100#(TDC)
+TDCrmsabeV = 2 #(TDC)
+
+#areaUpBound = 23000000000 #upper bound (as if doesn't exist)  
 
 sig = 13 #standard deviation
-MuonBunchTime = [310,785,1261,1741,2215,2694,3170,3645] # mean of 8 different muon bunches
+MuonBunchTime = [311,786,1262,1742,2216,2694,3170,3600] # mean of 8 different muon bunches
 BunchNumber = 0
 Num1hitPL = 0 # count the number of one hit per layer process (at most 1 process per bunch)
 numberOfProcessFile = 0
@@ -126,19 +138,27 @@ for file_name in file_names:
         continue
 
     #load the braches
-    height = r.std.vector('double')()
-    time = r.std.vector('double')()
-    area = r.std.vector('double')()
+    TDCheight = r.std.vector('double')()
+    TDCtime = r.std.vector('double')()
+    TDCwidth = r.std.vector('double')()
+
     ix = r.std.vector('int')()
     iy = r.std.vector('int')()
     il = r.std.vector('int')()
+    RMSv = r.std.vector('Double_t')()
 
-    tree.SetBranchAddress("h", height)
-    tree.SetBranchAddress("t", time)
-    tree.SetBranchAddress("ix", ix)
-    tree.SetBranchAddress("iy", iy)
-    tree.SetBranchAddress("il", il)
-    tree.SetBranchAddress("a", area)
+    event_id = array.array('L', [0])
+
+
+    tree.SetBranchAddress("pulse_volt_height", TDCheight)
+    tree.SetBranchAddress("pulse_time_is", TDCtime)
+    tree.SetBranchAddress("pulse_time_fwhm", TDCwidth)
+    tree.SetBranchAddress("pulse_ix", ix)
+    tree.SetBranchAddress("pulse_iy", iy)
+    tree.SetBranchAddress("pulse_il", il)
+    tree.SetBranchAddress("event_volt_rms_abe", RMSv)
+
+    tree.SetBranchAddress("event_id", event_id)
 
     numberOfProcessFile += 1
     
@@ -149,7 +169,9 @@ for file_name in file_names:
     
 
     for index in range(TotalEntries):
+        print(f"entry index{index}")
         tree.GetEntry(index)
+        print(f"Entry {index}: evt = {event_id[0]}")  # Access the value from the buffer
         #collect location index and pulse time for data in 8 different bunches
         bunch1x = []
         bunch1y = []
@@ -237,89 +259,89 @@ for file_name in file_names:
         B8l2E = False
         
 
-        sorted_data = sorted(zip(time,height,ix,iy,il,area), key=lambda x: x[0])
-        for t,h,x,y,l,a in sorted_data:
-            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+        sorted_data = sorted(zip(TDCtime,TDCheight,ix,iy,il,TDCwidth,RMSv), key=lambda x: x[0])
+        for t,h,x,y,l,w,v in sorted_data:
+            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch1x.append(x)
                 bunch1y.append(y)
                 bunch1l.append(l)
                 bunch1t.append(t)
                 B1num += 1
-                if l ==1 :B1l1E = True
-                if l ==2 :B1l2E = True
+                if l ==0 :B1l1E = True
+                if l ==1 :B1l2E = True
                 
 
-            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch2x.append(x)
                 bunch2y.append(y)
                 bunch2l.append(l)
                 bunch2t.append(t)
                 B2num += 1
-                if l ==1 :B2l1E = True
-                if l ==2 :B2l2E = True
+                if l ==0 :B2l1E = True
+                if l ==1 :B2l2E = True
             
-            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch3x.append(x)
                 bunch3y.append(y)
                 bunch3l.append(l)
                 bunch3t.append(t)
                 B3num += 1
-                if l ==1 :B3l1E = True
-                if l ==2 :B3l2E = True
+                if l ==0 :B3l1E = True
+                if l ==1 :B3l2E = True
             
-            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch4x.append(x)
                 bunch4y.append(y)
                 bunch4l.append(l)
                 bunch4t.append(t)
                 B4num += 1
-                if l ==1 :B4l1E = True
-                if l ==2 :B4l2E = True
+                if l ==0 :B4l1E = True
+                if l ==1 :B4l2E = True
             
-            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch5x.append(x)
                 bunch5y.append(y)
                 bunch5l.append(l)
                 bunch5t.append(t)
                 B5num += 1
-                if l ==1 :B5l1E = True
-                if l ==2 :B5l2E = True
+                if l ==0 :B5l1E = True
+                if l ==1 :B5l2E = True
             
-            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch6x.append(x)
                 bunch6y.append(y)
                 bunch6l.append(l)
                 bunch6t.append(t)
                 B6num += 1
-                if l ==1 :B6l1E = True
-                if l ==2 :B6l2E = True
+                if l ==0 :B6l1E = True
+                if l ==1 :B6l2E = True
             
-            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch7x.append(x)
                 bunch7y.append(y)
                 bunch7l.append(l)
                 bunch7t.append(t)
                 B7num += 1
-                if l ==1 :B7l1E = True
-                if l ==2 :B7l2E = True
+                if l ==0 :B7l1E = True
+                if l ==1 :B7l2E = True
 
 
-            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and h > hegithCut and a > areaCut and a < areaUpBound:
+            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
                 
                 bunch8x.append(x)
                 bunch8y.append(y)
                 bunch8l.append(l)
                 bunch8t.append(t)
                 B8num += 1
-                if l ==1 :B8l1E = True
-                if l ==2 :B8l2E = True
+                if l ==0 :B8l1E = True
+                if l ==1 :B8l2E = True
 
         Dtl1,twoHit1,B1chan=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
         Dtl2,twoHit2,B2chan=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
@@ -389,11 +411,20 @@ print(len(DtSet))
 
 #find the mean for each channel
 MeanDtChanNo = r.TGraph(80)
+hist2d = r.TH2F("hotChan", " hotChan;X-axis;Y-axis", 10,0,10 ,8, 0, 8)
 for ChanNo, DtSetData in enumerate(Dt_Chans):
     if len(DtSetData) >0 : 
         mean = np.mean(DtSetData)
         
         MeanDtChanNo.SetPoint(ChanNo,ChanNo, mean) 
+        for innerDt in DtSetData:
+            #if innerDt >= 4 :
+            yl1 = ChanNo // 10 
+            xl1 = ChanNo % 10
+            hist2d.Fill(xl1,yl1)
+
+
+        
 MeanDtChanNo.SetTitle("Chan & Dt mean;channel no;Dt(sample time) mean")
 MeanDtChanNo.SetMarkerStyle(21)  # Solid square
 MeanDtChanNo.SetMarkerSize(1.2)  # Marker size
@@ -413,6 +444,10 @@ nhits.Write()
 canvas = r.TCanvas("canvas1", "My First Canvas", 800, 600)
 MeanDtChanNo.Draw("AP")
 canvas.Write()
+canvas2 = r.TCanvas("canvas2", "My First Canvas", 800, 600)
+hist2d.Write()
+hist2d.Draw("COLZ") 
+canvas2.Write()
 print(f"numberOfProcessFile: {numberOfProcessFile}")
 
 #GetEntry()
