@@ -9,9 +9,9 @@ def example_3D_plot_pyroot(eventNo,filelocation):
     height = r.std.vector('double')()
     time = r.std.vector('double')()
     area = r.std.vector('double')()
-    ix = r.std.vector('int')()
-    iy = r.std.vector('int')()
-    il = r.std.vector('int')()
+    ix = r.std.vector('unsigned short')()
+    iy = r.std.vector('unsigned short')()
+    il = r.std.vector('unsigned short')()
     #evt = array.array('I', [0])
     evt= array.array('L', [0])
 
@@ -34,8 +34,8 @@ def example_3D_plot_pyroot(eventNo,filelocation):
     for t,h,x,y,l,a in data:
         print(f"t {t}")
         print(f"h {h}")
-        if l == 1: h3l2.Fill(t, x, y,h)
-        elif l == 0: h3l1.Fill(t, x, y,h)
+        if l == 1: h3l2.Fill(t, x, y, a)
+        elif l == 0: h3l1.Fill(t, x, y,a)
         
     # Set a common color range
     min_val = min(h3l1.GetMinimum(), h3l2.GetMinimum())
@@ -84,5 +84,5 @@ def example_3D_plot_pyroot(eventNo,filelocation):
 if __name__ == "__main__":
     #fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/r00047_event.root"
     fileDit = "/Users/haoliangzheng/subMETData/V3Data/SUBMET/2025MayVer/r00025_spill.root"
-    eventNo = 0
+    eventNo = 4252
     example_3D_plot_pyroot(eventNo,fileDit)

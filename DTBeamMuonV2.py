@@ -38,7 +38,7 @@ import array
 
 
 #Method for finding Dt for data within a single muon bunch
-def Dt(x,y,l,t,eventIndex,a = 2,cosmicVeto=False):
+def Dt(x,y,l,t,eventIndex,a = 2,cosmicVeto=True):
     data=zip(x,y,l,t)
     tl1 = 5000
     tl2 = 6000
@@ -50,9 +50,9 @@ def Dt(x,y,l,t,eventIndex,a = 2,cosmicVeto=False):
     l2Hit = 0
     chanNo = -10
 
-    if len(x) < 2: return [-100,0,-10]  #To find Dt we need at least two large pulses in the beam muon bunch. The second 0 means in the curent bunch there is no one hit per layer process
+    if len(x) != 2: return [-100,0,-10]  #To find Dt we need at least two large pulses in the beam muon bunch. The second 0 means in the curent bunch there is no one hit per layer process
     if cosmicVeto:
-        if (0 in x) or (9 in x) or (7 in y): return -100 
+        if (0 in x) or (9 in x) or (7 in y): return [-100,0,-10] 
     
     #find the first pulse at each layer
     for x,y,l,t in data:
@@ -145,10 +145,10 @@ for file_name in file_names:
     TDCtime = r.std.vector('double')()
     TDCwidth = r.std.vector('double')()
 
-    ix = r.std.vector('int')()
-    iy = r.std.vector('int')()
-    il = r.std.vector('int')()
-    RMSv = r.std.vector('Double_t')()
+    ix = r.std.vector('unsigned short')()
+    iy = r.std.vector('unsigned short')()
+    il = r.std.vector('unsigned short')()
+    RMSv = r.std.vector('double')()
 
     event_id = array.array('L', [0])
 
@@ -174,6 +174,11 @@ for file_name in file_names:
     for index in range(TotalEntries):
         #print(f"entry index{index}")
         tree.GetEntry(index)
+
+        #futher rejection of cosmic muon
+        if (0 in list(ix)) or (9 in list(ix)) or (7 in list(iy)): continue
+
+
         #print(f"Entry {index}: evt = {event_id[0]}")  # Access the value from the buffer
         #collect location index and pulse time for data in 8 different bunches
         bunch1x = []
@@ -372,6 +377,7 @@ for file_name in file_names:
         Dtl8,twoHit8,B8chan=Dt(bunch8x,bunch8y,bunch8l,bunch8t,bunch8EventIdex)
 
         #debug
+        """
         print(f"B1chan {B1chan}")
         print(f"B2chan {B2chan}")
         print(f"B3chan {B3chan}")
@@ -380,6 +386,8 @@ for file_name in file_names:
         print(f"B6chan {B6chan}")
         print(f"B7chan {B7chan}")
         print(f"B8chan {B8chan}")
+        """
+        
 
 
 
