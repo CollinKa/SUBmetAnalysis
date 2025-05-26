@@ -12,26 +12,30 @@ def example_3D_plot_pyroot(eventNo,filelocation):
     ix = r.std.vector('int')()
     iy = r.std.vector('int')()
     il = r.std.vector('int')()
-    evt = array.array('I', [0])
+    #evt = array.array('I', [0])
+    evt= array.array('L', [0])
 
-    tree.SetBranchAddress("h", height)
-    tree.SetBranchAddress("t", time)
-    tree.SetBranchAddress("ix", ix)
-    tree.SetBranchAddress("iy", iy)
-    tree.SetBranchAddress("il", il)
-    tree.SetBranchAddress("a", area)
-    tree.SetBranchAddress("evt", evt)
+    tree.SetBranchAddress("pulse_volt_height", height)
+    tree.SetBranchAddress("pulse_time_is", time)
+    tree.SetBranchAddress("pulse_ix", ix)
+    tree.SetBranchAddress("pulse_iy", iy)
+    tree.SetBranchAddress("pulse_il", il)
+    tree.SetBranchAddress("pulse_area", area)
+    tree.SetBranchAddress("event_id", evt)
 
     # Initialize a 3D histogram
-    h3l1 = r.TH3D("h3l1", "Layer 1", 4915, -0.6, 4914.6, 10, -0.5, 9.5, 8, -0.5, 7.5);
-    h3l2 = r.TH3D("h3l2", "Layer 2", 4915, -0.6, 4914.6, 10, -0.5, 9.5, 8, -0.5, 7.5);
+    h3l1 = r.TH3D("h3l1", "Layer 1", 4915, -0.6, 4914.6, 10, 0, 9, 8, 0, 8);
+    h3l2 = r.TH3D("h3l2", "Layer 2", 4915, -0.6, 4914.6, 10, 0, 9, 8, 0, 8);
 
     tree.GetEntry(eventNo)
+    print(f"size of pulses {len(height)}")
 
     data = zip(time,height,ix,iy,il,area)
     for t,h,x,y,l,a in data:
-        if l == 2: h3l2.Fill(t, x, y,a)
-        elif l == 1: h3l1.Fill(t, x, y,a)
+        print(f"t {t}")
+        print(f"h {h}")
+        if l == 1: h3l2.Fill(t, x, y,h)
+        elif l == 0: h3l1.Fill(t, x, y,h)
         
     # Set a common color range
     min_val = min(h3l1.GetMinimum(), h3l2.GetMinimum())
@@ -78,6 +82,7 @@ def example_3D_plot_pyroot(eventNo,filelocation):
 
 # Run the function
 if __name__ == "__main__":
-    fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/r00047_event.root"
-    eventNo = 5
+    #fileDit = "/Users/haoliangzheng/subMETData/beamOff/KUmergefile/merged/r00047_event.root"
+    fileDit = "/Users/haoliangzheng/subMETData/V3Data/SUBMET/2025MayVer/r00025_spill.root"
+    eventNo = 0
     example_3D_plot_pyroot(eventNo,fileDit)
