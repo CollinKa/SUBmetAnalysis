@@ -38,7 +38,7 @@ import array
 
 
 #Method for finding Dt for data within a single muon bunch
-def Dt(x,y,l,t,a = 2,cosmicVeto=False):
+def Dt(x,y,l,t,eventIndex,a = 2,cosmicVeto=False):
     data=zip(x,y,l,t)
     tl1 = 5000
     tl2 = 6000
@@ -71,11 +71,14 @@ def Dt(x,y,l,t,a = 2,cosmicVeto=False):
                 yl2 = y                 
 
     Da = ((xl1 - xl2)** 2)  +  ((yl1 - yl2)**2) 
-    if Da ==0:
+    if (Da ==0):
         chanNo = xl1 + yl1 * 10
     #if Da <= 5 and Da >= 2:
-    if Da <= a:
+    if (Da <= a) and (l1Hit*l2Hit==1):
         print("found it")
+        print(l1Hit) #debug
+        print(l2Hit)
+        print(f"sample event at {str(eventIndex[0])}" )
         return [tl2 - tl1,l1Hit*l2Hit,chanNo]
     else: return [-100,0,-10]
     
@@ -169,42 +172,50 @@ for file_name in file_names:
     
 
     for index in range(TotalEntries):
-        print(f"entry index{index}")
+        #print(f"entry index{index}")
         tree.GetEntry(index)
-        print(f"Entry {index}: evt = {event_id[0]}")  # Access the value from the buffer
+        #print(f"Entry {index}: evt = {event_id[0]}")  # Access the value from the buffer
         #collect location index and pulse time for data in 8 different bunches
         bunch1x = []
         bunch1y = []
         bunch1l = []
         bunch1t = []
+        bunch1EventIdex = [] #FIXME: delete it later
         bunch2x = []
         bunch2y = []
         bunch2l = []
         bunch2t = []
+        bunch2EventIdex = []
         bunch3x = []
         bunch3y = []
         bunch3l = []
         bunch3t = []
+        bunch3EventIdex = []
         bunch4x = []
         bunch4y = []
         bunch4l = []
         bunch4t = []
+        bunch4EventIdex = []
         bunch5x = []
         bunch5y = []
         bunch5l = []
         bunch5t = []
+        bunch5EventIdex = []
         bunch6x = []
         bunch6y = []
         bunch6t = []
         bunch6l = []
+        bunch6EventIdex = []
         bunch7x = []
         bunch7y = []
         bunch7l = []
         bunch7t = []
+        bunch7EventIdex = []
         bunch8x = []
         bunch8y = []
         bunch8l = []
         bunch8t = []
+        bunch8EventIdex = []
         
         
 
@@ -261,105 +272,143 @@ for file_name in file_names:
 
         sorted_data = sorted(zip(TDCtime,TDCheight,ix,iy,il,TDCwidth,RMSv), key=lambda x: x[0])
         for t,h,x,y,l,w,v in sorted_data:
-            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            if (t > MuonBunchTime[0] - sig) and (t < MuonBunchTime[0] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch1x.append(x)
                 bunch1y.append(y)
                 bunch1l.append(l)
                 bunch1t.append(t)
+                bunch1EventIdex.append(event_id)
                 B1num += 1
                 if l ==0 :B1l1E = True
                 if l ==1 :B1l2E = True
                 
 
-            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[1] -sig) and (t < MuonBunchTime[1] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch2x.append(x)
                 bunch2y.append(y)
                 bunch2l.append(l)
                 bunch2t.append(t)
+                bunch2EventIdex.append(event_id)
                 B2num += 1
                 if l ==0 :B2l1E = True
                 if l ==1 :B2l2E = True
             
-            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[2] -sig) and (t < MuonBunchTime[2] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch3x.append(x)
                 bunch3y.append(y)
                 bunch3l.append(l)
                 bunch3t.append(t)
+                bunch3EventIdex.append(event_id)
                 B3num += 1
                 if l ==0 :B3l1E = True
                 if l ==1 :B3l2E = True
             
-            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[3] -sig) and (t < MuonBunchTime[3] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch4x.append(x)
                 bunch4y.append(y)
                 bunch4l.append(l)
                 bunch4t.append(t)
+                bunch4EventIdex.append(event_id)
                 B4num += 1
                 if l ==0 :B4l1E = True
                 if l ==1 :B4l2E = True
             
-            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[4] -sig) and (t < MuonBunchTime[4] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch5x.append(x)
                 bunch5y.append(y)
                 bunch5l.append(l)
                 bunch5t.append(t)
+                bunch5EventIdex.append(event_id)
                 B5num += 1
                 if l ==0 :B5l1E = True
                 if l ==1 :B5l2E = True
             
-            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[5] -sig) and (t < MuonBunchTime[5] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch6x.append(x)
                 bunch6y.append(y)
                 bunch6l.append(l)
                 bunch6t.append(t)
+                bunch6EventIdex.append(event_id)
                 B6num += 1
                 if l ==0 :B6l1E = True
                 if l ==1 :B6l2E = True
             
-            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[6] -sig) and (t < MuonBunchTime[6] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch7x.append(x)
                 bunch7y.append(y)
                 bunch7l.append(l)
                 bunch7t.append(t)
+                bunch7EventIdex.append(event_id)
                 B7num += 1
                 if l ==0 :B7l1E = True
                 if l ==1 :B7l2E = True
 
 
-            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and h > hegithCut and w < widthBound and v < TDCrmsabeV:
+            elif (t > MuonBunchTime[7] -sig) and (t < MuonBunchTime[7] + sig) and (h > hegithCut) and (w < widthBound) and (v < TDCrmsabeV):
                 
                 bunch8x.append(x)
                 bunch8y.append(y)
                 bunch8l.append(l)
                 bunch8t.append(t)
+                bunch8EventIdex.append(event_id)
                 B8num += 1
                 if l ==0 :B8l1E = True
                 if l ==1 :B8l2E = True
 
-        Dtl1,twoHit1,B1chan=Dt(bunch1x,bunch1y,bunch1l,bunch1t)
-        Dtl2,twoHit2,B2chan=Dt(bunch2x,bunch2y,bunch2l,bunch2t)
-        Dtl3,twoHit3,B3chan=Dt(bunch3x,bunch3y,bunch3l,bunch3t)
-        Dtl4,twoHit4,B4chan=Dt(bunch4x,bunch4y,bunch4l,bunch4t)
-        Dtl5,twoHit5,B5chan=Dt(bunch5x,bunch5y,bunch5l,bunch5t)
-        Dtl6,twoHit6,B6chan=Dt(bunch6x,bunch6y,bunch6l,bunch6t)
-        Dtl7,twoHit7,B7chan=Dt(bunch7x,bunch7y,bunch7l,bunch7t)
-        Dtl8,twoHit8,B8chan=Dt(bunch8x,bunch8y,bunch8l,bunch8t)
+        Dtl1,twoHit1,B1chan=Dt(bunch1x,bunch1y,bunch1l,bunch1t,bunch1EventIdex)
+        Dtl2,twoHit2,B2chan=Dt(bunch2x,bunch2y,bunch2l,bunch2t,bunch2EventIdex)
+        Dtl3,twoHit3,B3chan=Dt(bunch3x,bunch3y,bunch3l,bunch3t,bunch3EventIdex)
+        Dtl4,twoHit4,B4chan=Dt(bunch4x,bunch4y,bunch4l,bunch4t,bunch4EventIdex)
+        Dtl5,twoHit5,B5chan=Dt(bunch5x,bunch5y,bunch5l,bunch5t,bunch5EventIdex)
+        Dtl6,twoHit6,B6chan=Dt(bunch6x,bunch6y,bunch6l,bunch6t,bunch6EventIdex)
+        Dtl7,twoHit7,B7chan=Dt(bunch7x,bunch7y,bunch7l,bunch7t,bunch7EventIdex)
+        Dtl8,twoHit8,B8chan=Dt(bunch8x,bunch8y,bunch8l,bunch8t,bunch8EventIdex)
 
-        if (B1chan>=0): Dt_Chans[B1chan].append(Dtl1)
-        if (B2chan>=0): Dt_Chans[B2chan].append(Dtl2)
-        if (B3chan>=0): Dt_Chans[B3chan].append(Dtl3)
-        if (B4chan>=0): Dt_Chans[B4chan].append(Dtl4)
-        if (B5chan>=0): Dt_Chans[B5chan].append(Dtl5)
-        if (B6chan>=0): Dt_Chans[B6chan].append(Dtl6)
-        if (B7chan>=0): Dt_Chans[B7chan].append(Dtl7)
-        if (B8chan>=0): Dt_Chans[B8chan].append(Dtl8)
+        #debug
+        print(f"B1chan {B1chan}")
+        print(f"B2chan {B2chan}")
+        print(f"B3chan {B3chan}")
+        print(f"B4chan {B4chan}")
+        print(f"B5chan {B5chan}")
+        print(f"B6chan {B6chan}")
+        print(f"B7chan {B7chan}")
+        print(f"B8chan {B8chan}")
+
+
+
+
+        #FIXME: is *chan>=0 still working?
+        if (B1chan>=0): 
+            Dt_Chans[B1chan].append(Dtl1)
+            print(f"sample event at index {index}")
+        if (B2chan>=0): 
+            Dt_Chans[B2chan].append(Dtl2)
+            print(f"sample event at index {index}")
+        if (B3chan>=0): 
+            Dt_Chans[B3chan].append(Dtl3)
+            print(f"sample event at index {index}")
+        if (B4chan>=0): 
+            Dt_Chans[B4chan].append(Dtl4)
+            print(f"sample event at index {index}")
+        if (B5chan>=0): 
+            Dt_Chans[B5chan].append(Dtl5)
+            print(f"sample event at index {index}")
+        if (B6chan>=0): 
+            Dt_Chans[B6chan].append(Dtl6)
+            print(f"sample event at index {index}")
+        if (B7chan>=0): 
+            Dt_Chans[B7chan].append(Dtl7)
+            print(f"sample event at index {index}")
+        if (B8chan>=0): 
+            Dt_Chans[B8chan].append(Dtl8)
+            print(f"sample event at index {index}")
 
 
         Num1hitPL += twoHit1
@@ -406,7 +455,7 @@ print(f"Number of bunches: {BunchNumber}")
 print(f"Number of 1 hit per layer process: {Num1hitPL}")
 
 
-print(len(DtSet)) 
+print(len(DtSet)) #this can't count the targer event
 
 
 #find the mean for each channel
@@ -430,6 +479,9 @@ MeanDtChanNo.SetMarkerStyle(21)  # Solid square
 MeanDtChanNo.SetMarkerSize(1.2)  # Marker size
 MeanDtChanNo.SetMarkerColor(r.kRed)  # Marker color
 
+
+
+#so the result is not correct
 for t in DtSet:
     if abs(t) < 2*sig: #from Dt() function, only the result that is less than abs(t) < 2*sig means 2 layer hit exist.
         histogram.Fill(t)
