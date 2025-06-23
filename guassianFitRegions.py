@@ -1,7 +1,7 @@
 from ROOT import TF1
 import ROOT as r
 
-output_file = r.TFile("pulseT4runRegionfit.root", "RECREATE")
+output_file = r.TFile("pulseT4runRegionfit_100SigmaTDC.root", "RECREATE")
 graph = r.TGraphErrors()
 graph.SetTitle("gauss means vs run;mean of G peak(is TDC);run number")
 graph.SetMarkerStyle(20)  # Circle marker
@@ -9,7 +9,7 @@ graph.SetMarkerSize(0.5)
 graph.SetMarkerColor(r.kRed)
 
 #runNum = 53
-for runNum in range(25,57):
+for runNum in range(20,56):
     filelocation = f"/Users/haoliangzheng/subMETData/V3Data/SUBMET/2025MayVer/r000{runNum}_spill.root"
     print(f"processing run {filelocation}")
     lpulseT = r.TH1F("lpulseT{runNum}", "large pulse T Histogram;time;# of pulse", 4000, 0, 4000)
@@ -41,9 +41,9 @@ for runNum in range(25,57):
 
     lpulseT.Draw() #test
     # Define peak centers and fitting windows
-    peak_means = [310, 738, 1215, 1745, 2215, 2689, 3171, 3648]  #the guess value of peaks that work for the majority of  cases.
+    peak_means = [310, 770, 1215, 1745, 2215, 2689, 3171, 3648]  #the guess value of peaks that work for the majority of  cases.
 
-    real_means = [310, 738, 1215, 1745, 2215, 2689, 3171, 3648] #guess values will be overwritten at below
+    real_means = [310, 770, 1215, 1745, 2215, 2689, 3171, 3648] #guess values will be overwritten at below
     real_amps = [100]*8 #guess values will be overwritten at below
     #Find the real peak for each bunch
 
@@ -69,10 +69,17 @@ for runNum in range(25,57):
         # Define a single Gaussian function for the local fit
         func = TF1(f"gauss_{i}", "[0]*TMath::Gaus(x, [1], [2])", fit_min, fit_max)
         #func.SetParameters(300, mean, 13)  # [amplitude, mean, sigma]
-        func.SetParameters(real_amps[i], mean, 13)
+        func.SetParameters(real_amps[i], real_means[i], 13)
         
         # Perform the fit
+        canvasFit = r.TCanvas(f"gaussfit_perSection_runNum{runNum}_peak{i}", f"gaussfit_perSection_runNum{runNum}_peak{i}", 800, 600)
         lpulseT.Fit(func, "R")  # "R" tells ROOT to respect the function's range
+        lpulseT.Draw("pe")
+        canvasFit.Update()
+        canvasFit.Draw()
+        canvasFit.SaveAs(f"gaussfit_perSection_runNum{runNum}_peak{i}.png")
+        output_file.cd()
+        canvasFit.Write()
 
         # Get parameters
         amp = func.GetParameter(0)
@@ -81,9 +88,9 @@ for runNum in range(25,57):
         mu_err = func.GetParError(1)
 
         #print(f"Peak {i+1}: μ = {mu:.2f} ± {mu_err:.2f}, σ = {sigma:.2f}")
-        if amp>0 and sigma > 0:
-            graph.SetPoint(i + (runNum-25)*8, mu, runNum)
-            graph.SetPointError(i + (runNum-25)*8, sigma, 0.0)
+        if amp>0 :
+            graph.SetPoint(i + (runNum-20)*8, mu, runNum)
+            graph.SetPointError(i + (runNum-20)*8, sigma, 0.0)
         else:
             print(f"warning run{runNum} the {i} th peak has wrong fitting")
     file.Close()
